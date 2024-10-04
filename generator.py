@@ -1,6 +1,7 @@
 import sys
 from multiprocessing.dummy import Pool
 import threading
+import Levenshtein  # Importiere die Levenshtein-Bibliothek
 
 # Rekursionslimit erhöhen
 sys.setrecursionlimit(5000)
@@ -71,6 +72,29 @@ def create_board(input_str):
         print(" ".join(row))
     return arr
 
+def group_words_by_similarity(sorted_words, max_distance=2):
+    """
+    Gruppiert Wörter basierend auf dem Levenshtein-Abstand.
+    
+    :param sorted_words: Liste von Tupeln (Wort, Score), sortiert alphabetisch.
+    :param max_distance: Maximale Levenshtein-Distanz für die Gruppierung.
+    :return: Liste von Gruppen, jede Gruppe ist eine Liste von Tupeln (Wort, Score).
+    """
+    groups = []
+    
+    for word, score in sorted_words:
+        placed = False
+        for group in groups:
+            # Vergleiche mit dem ersten Wort der Gruppe
+            if Levenshtein.distance(word, group[0][0]) <= max_distance:
+                group.append((word, score))
+                placed = True
+                break
+        if not placed:
+            groups.append([(word, score)])
+    
+    return groups
+
 def main():
     global word_candidates
     # Importieren und Konvertieren der Wortliste in Großbuchstaben
@@ -113,15 +137,39 @@ def main():
         total_score = calculate_word_score(word, LETTER_SCORES, LENGTH_BONUS)
         word_scores[word] = total_score
     
-    # Sortieren und Ausgeben der gefundenen Wörter
-    # Primär nach Gesamtpunktzahl (absteigend), sekundär nach Länge (absteigend), tertiär alphabetisch (aufsteigend)
-    sorted_words = sorted(word_scores.items(), key=lambda x: (-x[1], -len(x[0]), x[0]))
+    # Sortieren der Wörter alphabetisch für konsistente Gruppierung
+    sorted_words_alpha = sorted(word_scores.items(), key=lambda x: x[0])
     
-    print(f"\nAnzahl gefundener Wörter: {len(sorted_words)}\n")
+    # Gruppieren der Wörter basierend auf dem Levenshtein-Abstand
+    max_distance = 2  # Du kannst diesen Wert anpassen
+    grouped_words = group_words_by_similarity(sorted_words_alpha, max_distance)
     
-    # Ausgabe der Wörter mit ihren Gesamtpunktzahlen in einer einzigen Zeile
-    output = '\n'.join([f"{word}: {score} Punkte" for word, score in sorted_words])
-    print(output)
+    # Sortieren der Gruppen basierend auf der Summe der Punktzahlen (aufsteigend)
+    grouped_words_sorted = sorted(
+        grouped_words,
+        key=lambda group: sum(score for word, score in group)
+    )
+    
+    # Sortieren innerhalb jeder Gruppe nach Punktzahl absteigend und dann alphabetisch
+    for group in grouped_words_sorted:
+        group.sort(key=lambda x: (-x[1], x[0]))
+    
+    # Ausgabe der gruppierten Wörter
+    total_words = len(sorted_words_alpha)
+    print(f"\nAnzahl gefundener Wörter: {total_words}\n")
+    
+    for idx, group in enumerate(grouped_words_sorted, 1):
+        # Berechne die Gesamtsumme der Punkte für die Gruppe
+        group_total_score = sum(score for word, score in group)
+        
+        # Optional: Bestimme einen Gruppennamen, z.B. das erste Wort oder ein repräsentatives Wort
+        group_words = [word for word, score in group]
+        group_name = group_words[0]  # Du könntest eine intelligentere Methode wählen
+        
+        print(f"Gruppe {idx} (Gesamtpunkte: {group_total_score}):")
+        for word, score in group:
+            print(f"  {word}: {score} Punkte")
+        print()  # Leerzeile zwischen den Gruppen
 
 if __name__ == "__main__":
     main()
