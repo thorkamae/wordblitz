@@ -141,7 +141,7 @@ def main():
     sorted_words_alpha = sorted(word_scores.items(), key=lambda x: x[0])
     
     # Gruppieren der Wörter basierend auf dem Levenshtein-Abstand
-    max_distance = 2  # Du kannst diesen Wert anpassen
+    max_distance = 3  # Du kannst diesen Wert anpassen
     grouped_words = group_words_by_similarity(sorted_words_alpha, max_distance)
     
     # Sortieren der Gruppen basierend auf der Summe der Punktzahlen (aufsteigend)
