@@ -1,6 +1,6 @@
 # Definiere die Pfade zur Eingabe- und Ausgabedatei
-input_datei = 'wordlist-de.txt'      # Ersetze dies mit dem Pfad zu deiner Eingabedatei
-output_datei = 'wordlist-de_neu.txt'  # Ersetze dies mit dem gewünschten Pfad für die Ausgabedatei
+input_datei = 'wordlist-de.txt'          # Ersetze dies mit dem Pfad zu deiner Eingabedatei
+output_datei = 'wordlist-de_neu.txt'    # Ersetze dies mit dem gewünschten Pfad für die Ausgabedatei
 
 # Funktion zur Umwandlung der Umlaute und Großschreibung
 def umlaut_umwandeln(word):
@@ -26,8 +26,12 @@ def verarbeite_wortliste(input_pfad, output_pfad):
             for zeile in infile:
                 wort = zeile.strip()
                 if wort:  # Stelle sicher, dass die Zeile nicht leer ist
-                    neues_wort = umlaut_umwandeln(wort)
-                    outfile.write(neues_wort + '\n')
+                    if len(wort) <= 10:  # Überprüfe, ob das Wort 10 Zeichen oder weniger hat
+                        neues_wort = umlaut_umwandeln(wort)
+                        outfile.write(neues_wort + '\n')
+                    else:
+                        # Optional: Du kannst hier eine Nachricht ausgeben oder das Wort anderweitig verarbeiten
+                        pass  # In diesem Fall werden Wörter mit mehr als 10 Zeichen einfach übersprungen
         print(f"Die umgewandelte Wortliste wurde erfolgreich in '{output_pfad}' gespeichert.")
     except FileNotFoundError:
         print(f"Die Datei '{input_pfad}' wurde nicht gefunden.")
